@@ -1,6 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import numpy as np
 
-SAMPLESIZE = 10
+SAMPLESIZE = 100
 RUNS = 1000
 
 
@@ -31,14 +34,12 @@ def evaluate_sign(vectors):
 
     Y = np.sign(np.linalg.det(vectors))
 
-    print("Her er Y-matrisen: ", Y)
-
     return Y
 
 
 def create_w():
 
-    w = np.zeros(3)
+    w = np.zeros((3, 1))
 
     return w
 
@@ -53,7 +54,7 @@ def select_random_point(points, Y, H):
 
         sampleIndex = np.random.choice(10, 1)
 
-        if Y[sampleIndex] is not H[sampleIndex]:
+        if Y[sampleIndex] != H[sampleIndex]:
 
             found = True
 
@@ -67,29 +68,31 @@ def count_misclassified(H, Y):
 
     count = 0
 
-    for index, x in numpy.ndenumerate(Y):
+    for index, x in np.ndenumerate(Y):
 
-        if Y[index] is not H[index]:
+        if (Y[index] != H[index]):
 
                 count += 1
 
     return count
 
 
-def create_H(points, w):
+def create_H(X, w):
 
-    H = np.sign(np.dot(np.transpose(w), np.transpose(points)))
+    wt = np.transpose(w)
+    H = np.dot(wt, X)
+    H = np.sign(H[0])
 
     return H
 
 
-def update_weights(w, sample, sampleIndex, Y, iteration):
+def update_weights(w, sample, sampleIndex, Y):
 
-    w = w + Y[sampleIndex] * sample
+    adjustment = Y[sampleIndex] * sample
 
-    iteration += 1
+    w += np.transpose(adjustment)
 
-    return w, iteration
+    return w
 
 
 def create_points():
@@ -113,43 +116,66 @@ def create_X(points):
     return X
 
 
-def learn(X, Y, w, H, RUNS):
+def learn(run):
 
-    iterations = np.zeros(RUNS)
+    # Create random dataset of SAMPLESIZE samples
+    points = create_points()
 
-    for i in range(RUNS):
+    # Create target function for the learning algorithm to estimate
+    targetA, targetB, target = create_target()
 
-        select_random_point(points, Y, H)
+    # Create vectors to use in classification of points
+    vectors = create_point_vectors(points, targetA, targetB, target)
+
+    # Classify all points according to the target function,
+    # place them in a row vector
+    Y = evaluate_sign(vectors)
+
+    # Set up X and w and create the initial H
+    X = create_X(points)
+    w = create_w()
+    H = create_H(X, w)
+
+    iterations = 0
+
+    # Check if H is correctly classified
+    # If more than 0 points are misclassified, the loop continues
+
+    while count_misclassified(H, Y) != 0:
+
+        # Select random point for updating
+        sample, sampleIndex = select_random_point(points, Y, H)
+        w = update_weights(w, sample, sampleIndex, Y)
+
+        # Create new H vector
+
+        H = create_H(X, w)
+
+        iterations += 1
+
+        print("    Iteration # ", iterations)
+
+    print("Run # ",
+          run,
+          " had ",
+          iterations,
+          " iterations to classify all points.")
 
     return iterations
 
 
 def main():
 
-    # Create random dataset of SAMPLESIZE samples
+    # Create empty array to hold number of iterations required
+    # per RUNS
+    iterations = np.zeros(RUNS)
 
-    points = create_points()
+    for i in range(RUNS):
 
-    # Create target function for the learning algorithm to estimate
+        iterations[i] = learn(i)
 
-    targetA, targetB, target = create_target()
-
-    # Create vectors to use in classification of points
-
-    vectors = create_point_vectors(points, targetA, targetB, target)
-
-    # Classify all points according to the target function,
-    # place them in a row vector
-
-    Y = evaluate_sign(vectors)
-
-    # Set up X and w and create the initial H
-
-    X = create_X(points)
-    w = create_w()
-    H = create_H(points, w)
-
-    iterations = learn(X, Y, w, H, RUNS)
+    print()
+    print("The average number of iterations was ", np.mean(iterations))
 
 if __name__ == "__main__":
     main()
