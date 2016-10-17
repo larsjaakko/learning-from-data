@@ -52,7 +52,7 @@ def select_random_point(points, Y, H):
 
     while not found:
 
-        sampleIndex = np.random.choice(10, 1)
+        sampleIndex = np.random.choice(SAMPLESIZE, 1)
 
         if Y[sampleIndex] != H[sampleIndex]:
 
@@ -95,13 +95,13 @@ def update_weights(w, sample, sampleIndex, Y):
     return w
 
 
-def create_points():
+def create_points(number):
 
-    points = np.random.uniform(-1, 1, (SAMPLESIZE, 2))
+    points = np.random.uniform(-1, 1, (number, 2))
 
     # Add column of x0 = 1
 
-    points = np.c_[np.ones(SAMPLESIZE), points]
+    points = np.c_[np.ones(number), points]
 
     # NB! The points matrix has to be transposed,
     # it is not in the correct orientation for calculations
@@ -119,7 +119,7 @@ def create_X(points):
 def learn(run):
 
     # Create random dataset of SAMPLESIZE samples
-    points = create_points()
+    points = create_points(SAMPLESIZE)
 
     # Create target function for the learning algorithm to estimate
     targetA, targetB, target = create_target()
@@ -153,8 +153,6 @@ def learn(run):
 
         iterations += 1
 
-        print("    Iteration # ", iterations)
-
     print("Run # ",
           run,
           " had ",
@@ -164,10 +162,16 @@ def learn(run):
     return iterations
 
 
+def learn_and_measure():
+
+    return
+
+
 def main():
 
     # Create empty array to hold number of iterations required
     # per RUNS
+
     iterations = np.zeros(RUNS)
 
     for i in range(RUNS):
