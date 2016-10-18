@@ -93,11 +93,11 @@ def create_H(X, w):
     return H
 
 
-def evaluate_regression(Y, H):
+def evaluate_regression(Y, H, size):
 
-    results = np.zeros(100)
+    results = np.zeros(size)
 
-    for index in range(100):
+    for index in range(size):
 
         if Y[index] != H[index]:
 
@@ -115,7 +115,11 @@ def learn():
     targetA, targetB, target = create_target()
 
     # Create vectors to use in classification of points
-    vectors = create_point_vectors(points, targetA, targetB, target, SAMPLESIZE)
+    vectors = create_point_vectors(points,
+                                   targetA,
+                                   targetB,
+                                   target,
+                                   SAMPLESIZE)
 
     # Classify all points according to the target function,
     # place them in a row vector
@@ -135,24 +139,28 @@ def learn():
 
     H = create_H(X, w)
 
-    results = evaluate_regression(Y, H)
+    results = evaluate_regression(Y, H, SAMPLESIZE)
 
-    return np.sum(results), w, targetA, targetB, target
+    return np.mean(results), w, targetA, targetB, target
 
 
-def validate(weights, freshpoints, targetA, targetB, target):
-
-    vectors = create_point_vectors(freshpoints, targetA, targetB, target, 1000)
-    Y = evaluate_sign(vectors, 1000)
-    X = create_X(freshpoints)
+def validate(weights, targetA, targetB, target):
 
     outresults = np.zeros(1000)
 
     for index in range(1000):
 
+        freshpoints = create_points(1000)
+
+        vectors = create_point_vectors(freshpoints, targetA, targetB, target, 1000)
+        Y = evaluate_sign(vectors, 1000)
+        X = create_X(freshpoints)
+
         H = create_H(X, weights[index])
 
-        results = evaluate_regression(Y, H)
+        results = evaluate_regression(Y, H, 1000)
+
+        # print(np.mean(results))
 
         outresults[index] = np.mean(results)
 
@@ -166,17 +174,15 @@ def main():
 
     for index in range(1000):
 
-        print('Iteration no. ', index)
+        print('Iteration no. ', index+1)
 
         results[index], weights[index], targetA, targetB, target = learn()
 
-    print("E-in equals: ", np.mean(results)/100)
+    print("E-in equals: ", np.mean(results))
 
-    freshpoints = create_points(1000)
+    outresults = validate(weights, targetA, targetB, target)
 
-    outresults = validate(weights, freshpoints, targetA, targetB, target)
-
-    print("E-out equals: ", np.mean(outresults)/100)
+    print("E-out equals: ", np.mean(outresults))
 
 if __name__ == "__main__":
     main()
